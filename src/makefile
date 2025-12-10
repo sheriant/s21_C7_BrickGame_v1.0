@@ -4,5 +4,5 @@
 
 clang:
 	@echo "🔍 Format check..."
-	@clang-format -style=file:../materials/linters/.clang-format -n --Werror *.[ch] brick_game/*.[ch] gui/*.[ch] tests/*.[ch] >/dev/null 2>&1 && \
-		echo "✅ OK" || (echo "❌ Fixing..." && clang-format -style=file:../materials/linters/.clang-format -i *.[ch] brick_game/*.[ch] gui/*.[ch] tests/*.[ch] && echo "🎉 Done")
+	@clang-format -style=file:../materials/linters/.clang-format -n --Werror *.[ch] brick_game/tetris/*.[ch] gui/cli/*.[ch] >/dev/null 2>&1 && \
+		echo "✅ OK" || (echo "❌ Fixing..." && clang-format -style=file:../materials/linters/.clang-format -i *.[ch] brick_game/tetris/*.[ch] gui/cli/*.[ch] && echo "🎉 Done")
