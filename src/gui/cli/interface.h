@@ -6,7 +6,7 @@
 
 #include "../../game_info.h"
 
-void render(gameInfo_t info);
+void render(GameInfo_t info);
 void terminateGame();
 
 #endif  // INTERFACE_H

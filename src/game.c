@@ -8,7 +8,7 @@ int main() {
   noecho();
 
   initializeState();
-  // render(updateCurrentState());
+  render(updateCurrentState());
 
   while (1) {
     State_t *state = getCurrentState();
@@ -24,7 +24,7 @@ int main() {
       attackBlock();
     else if (state->status == GameOver)
       finishGame();
-    // render(updateCurrentState());
+    render(updateCurrentState());
   }
 
   return 0;
