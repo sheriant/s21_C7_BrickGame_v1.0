@@ -232,7 +232,7 @@ void moveBlockLeft() {
         canMoveLeft = 0;
     }
   }
-  if (canMoveLeft = 1) (state->coordY)--;
+  if (canMoveLeft == 1) (state->coordY)--;
   int attached = blockIsAttached();
   if (attached == 0)
     state->status = Moving;
@@ -254,7 +254,7 @@ void moveBlockRight() {
         canMoveRight = 0;
     }
   }
-  if (canMoveRight = 1) (state->coordY)++;
+  if (canMoveRight == 1) (state->coordY)++;
   int attached = blockIsAttached();
   if (attached == 0)
     state->status = Moving;
@@ -385,7 +385,7 @@ void consumeRows() {
       countBlocks = state->field[i][j];
     }
 
-    if (countBlocks = FIELD_W) {
+    if (countBlocks == FIELD_W) {
       for (int z = i; z > 0; z--) {
         for (int j = 0; j < FIELD_W; j++) {
           state->field[z][j] = state->field[z - 1][j];

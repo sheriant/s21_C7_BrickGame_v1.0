@@ -40,17 +40,17 @@ void render(GameInfo_t info) {
   char score[10];
   sprintf(score, "%d", info.score);
   mvwprintw(paramsWindow, 2, 5, "SCORE: ");
-  mvwprintw(paramsWindow, 2, 12, score);
+  mvwprintw(paramsWindow, 2, 12, "%s", score);
 
   char highScore[10];
   sprintf(highScore, "%d", info.highScore);
   mvwprintw(paramsWindow, 4, 5, "MAX SCORE: ");
-  mvwprintw(paramsWindow, 4, 16, highScore);
+  mvwprintw(paramsWindow, 4, 16, "%s", highScore);
 
   char level[10];
   sprintf(level, "%d", info.level);
   mvwprintw(paramsWindow, 6, 5, "LEVEL: ");
-  mvwprintw(paramsWindow, 6, 12, level);
+  mvwprintw(paramsWindow, 6, 12, "%s", level);
 
   mvwprintw(paramsWindow, 12, 5, "NEXT");
   for (int i = 0; i < 4; i++) {
