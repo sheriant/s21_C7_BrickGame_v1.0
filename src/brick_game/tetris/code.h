@@ -7,6 +7,7 @@
 #include <sys/time.h>
 
 #include "../../game.h"
+#include "../../game_info.h"
 
 #define SPEED 500
 #define SPEED_STEP 30

@@ -21,7 +21,7 @@ int main() {
     else if (state->status == Shifting)
       shiftBlock();
     else if (state->status == Attaching)
-      attackBlock();
+      attachBlock();
     else if (state->status == GameOver)
       finishGame();
     render(updateCurrentState());
@@ -48,7 +48,7 @@ void updateUserAction() {
     while (blockIsAttached() == 0) {
       (state->coordX++);
       render(updateCurrentState());
-      usleep(10000);
+      sleep(10000);
     }
   else if ((c == PAUSE_BUTTON) && (state->status != Initial)) {
     userInput(Pause);

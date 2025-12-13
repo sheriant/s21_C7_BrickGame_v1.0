@@ -46,80 +46,95 @@ all: library install run
 build: $(EXECUTABLE)
 
 $(EXECUTABLE): $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+	@echo "🔨 Компоновка исполняемого файла..."
+	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+	@echo "✅ Исполняемый файл создан: $(EXECUTABLE)"
 
-# Сборка статической библиотеки
+# Сборка статической библиотеки с очисткой объектных файлов
 library: $(LIBRARY)
+	@echo "🗑️  Очистка временных объектных файлов..."
+	@rm -f $(GAME_OBJS) $(GUI_OBJS) 2>/dev/null || true
 
 $(LIBRARY): $(GAME_OBJS) $(GUI_OBJS) | $(LIB_DIR)
-	ar rcs $@ $^
-	ranlib $@
+	@echo "📚 Сборка статической библиотеки..."
+	@ar rcs $@ $^
+	@ranlib $@
+	@echo "✅ Библиотека создана: $(LIBRARY)"
 
 # Создание директорий
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
 
 $(LIB_DIR):
-	mkdir -p $(LIB_DIR)
+	@mkdir -p $(LIB_DIR)
 
 # Правила компиляции для файлов в поддиректориях
 $(GAME_DIR)/%.o: $(GAME_DIR)/%.c
-	$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
+	@echo "🔧 Компиляция $<..."
+	@$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 $(GUI_DIR)/%.o: $(GUI_DIR)/%.c
-	$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
+	@echo "🔧 Компиляция $<..."
+	@$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 %.o: %.c
-	$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
+	@echo "🔧 Компиляция $<..."
+	@$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 # Установка
 install: build
-	@echo "Программа установлена в $(BUILD_DIR)"
+	@echo "📦 Программа установлена в $(BUILD_DIR)"
 
 # Запуск
 run: install
-	$(EXECUTABLE)
+	@echo "🚀 Запуск программы..."
+	@$(EXECUTABLE)
 
 # Удаление установленной программы
 uninstall:
-	rm -rf $(BUILD_DIR) $(LIB_DIR)
+	@echo "🗑️  Удаление программы..."
+	@rm -rf $(BUILD_DIR) $(LIB_DIR) 2>/dev/null || true
+	@echo "✅ Программа удалена"
 
-# Очистка
+# Очистка (полная)
 clean:
-	rm -f $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ)
-	rm -f *.o *.a *.gcno *.gcda *.gcov
-	rm -rf $(BUILD_DIR) $(DIST_DIR) $(LIB_DIR) html/ report/
+	@echo "🧹 Очистка временных файлов..."
+	@rm -f $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) 2>/dev/null || true
+	@rm -f *.o *.a *.gcno *.gcda *.gcov 2>/dev/null || true
+	@rm -rf $(BUILD_DIR) $(DIST_DIR) $(LIB_DIR) html/ report/ 2>/dev/null || true
+	@echo "✅ Все временные файлы удалены"
 
 # Документация (DVI)
 dvi:
-	@echo "DVI документация временно недоступна"
+	@echo "📄 DVI документация временно недоступна"
 	# TODO: Добавить генерацию Doxygen документации
 
 # Дистрибутив
 dist: clean
-	mkdir -p $(DIST_DIR)
-	cp -r ../src/* $(DIST_DIR)/
-	cp Makefile $(DIST_DIR)/
-	cd $(DIST_DIR) && tar -czvf $(PROJECT_NAME).tar.gz .
-	@echo "Дистрибутив создан: $(DIST_DIR)/$(PROJECT_NAME).tar.gz"
+	@echo "📦 Создание дистрибутива..."
+	@mkdir -p $(DIST_DIR)
+	@cp -r ../src/* $(DIST_DIR)/ 2>/dev/null || true
+	@cp Makefile $(DIST_DIR)/ 2>/dev/null || true
+	@cd $(DIST_DIR) && tar -czvf $(PROJECT_NAME).tar.gz . >/dev/null 2>&1
+	@echo "✅ Дистрибутив создан: $(DIST_DIR)/$(PROJECT_NAME).tar.gz"
 
 # Тесты (заглушка)
 test:
-	@echo "Тесты временно недоступны"
+	@echo "🧪 Тесты временно недоступны"
 	@echo "TODO: Добавить тесты"
 	# TODO: Добавить тесты
 
 # Отчет о покрытии кода (заглушка)
 gcov_report:
-	@echo "Отчет о покрытии кода временно недоступен"
+	@echo "📊 Отчет о покрытии кода временно недоступен"
 	@echo "TODO: Добавить тесты для генерации gcov отчета"
 	# TODO: Добавить тесты и gcov отчет
 
 # Проверка стиля кода
 clang:
-	@echo "🔍 Format check..."
+	@echo "🔍 Проверка стиля кода..."
 	@clang-format -style=file:../materials/linters/.clang-format -n --Werror *.[ch] brick_game/tetris/*.[ch] gui/cli/*.[ch] >/dev/null 2>&1 && \
-		echo "✅ OK" || (echo "❌ Fixing..." && clang-format -style=file:../materials/linters/.clang-format -i *.[ch] brick_game/tetris/*.[ch] gui/cli/*.[ch] && echo "🎉 Done")
+		echo "✅ OK" || (echo "❌ Исправление..." && clang-format -style=file:../materials/linters/.clang-format -i *.[ch] brick_game/tetris/*.[ch] gui/cli/*.[ch] >/dev/null 2>&1 && echo "🎉 Готово")
 
 # Статический анализ исходного кода
 cpp:
@@ -129,7 +144,7 @@ cpp:
 		$(MAIN_SRC) \
 		$(GAME_SRCS) \
 		$(GUI_SRCS) \
-		2>&1 | tee cppcheck_report.txt
+		2>&1 | tee cppcheck_report.txt >/dev/null
 	@echo "📄 Отчет сохранен в cppcheck_report.txt"
 
 # Проверка на утечки памяти
@@ -140,7 +155,7 @@ valgrind: build
 		--track-origins=yes \
 		--verbose \
 		--log-file=valgrind_report.txt \
-		$(EXECUTABLE) || true
+		$(EXECUTABLE) >/dev/null 2>&1 || true
 	@echo "📄 Отчет сохранен в valgrind_report.txt"
 
 # Помощь
