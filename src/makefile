@@ -1,16 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic
-LDFLAGS = -lcheck -pthread -lrt -lm -lsubunit 
-
-# Определение OS и настройка ncurses
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
-    LDFLAGS += -lncurses
-endif
-ifeq ($(UNAME_S),Darwin)
-    LDFLAGS += -lncurses
-endif
-# Для других систем может потребоваться -lcurses или -lpdcurses
+LDFLAGS = -lcheck -pthread -lrt -lm -lsubunit -lncurses
 
 # Директории
 GUI_DIR = gui/cli
@@ -19,6 +9,12 @@ INC_DIR = .
 OUTPUT_DIR = output
 DIST_DIR = dist
 LIB_DIR = lib
+
+# Директория тестов
+TEST_DIR = tests
+TEST_SOURCES = $(wildcard $(TEST_DIR)/*.c)
+TEST_OBJS = $(TEST_SOURCES:.c=.o)
+TEST_EXEC = $(OUTPUT_DIR)/tetris_tests
 
 # Исходные файлы (относительно src/)
 GAME_SRCS = $(GAME_DIR)/code.c
@@ -29,6 +25,11 @@ MAIN_SRC = game.c
 GAME_OBJS = $(GAME_DIR)/code.o
 GUI_OBJS = $(GUI_DIR)/interface.o
 MAIN_OBJ = game.o
+
+# Конфигурация документации
+DOC_SRC_DIR = src
+DOC_OUT_DIR = docs
+DOXYFILE = Doxyfile
 
 # Имена
 PROJECT_NAME = tetris
@@ -95,7 +96,6 @@ uninstall:
 	@rm -rf $(OUTPUT_DIR) $(LIB_DIR) 2>/dev/null || true
 	@echo "✅ Программа удалена"
 
-# Очистка (полная)
 clean: uninstall
 	@echo "🧹 Очистка временных файлов..."
 	@rm -f $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) 2>/dev/null || true
@@ -105,8 +105,30 @@ clean: uninstall
 
 # Документация (DVI)
 dvi:
-	@echo "📄 DVI документация временно недоступна"
-	# TODO: Добавить генерацию Doxygen документации
+	@echo "📄 Генерация DVI документации для Tetris..."
+	@echo "PROJECT_NAME = \"Tetris Game\"" > $(DOXYFILE)
+	@echo "PROJECT_BRIEF = \"Реализация игры Тетрис на C\"" >> $(DOXYFILE)
+	@echo "INPUT = $(DOC_SRC_DIR)" >> $(DOXYFILE)
+	@echo "RECURSIVE = YES" >> $(DOXYFILE)
+	@echo "EXTRACT_ALL = YES" >> $(DOXYFILE)
+	@echo "EXTRACT_PRIVATE = YES" >> $(DOXYFILE)
+	@echo "EXTRACT_STATIC = YES" >> $(DOXYFILE)
+	@echo "GENERATE_LATEX = YES" >> $(DOXYFILE)
+	@echo "GENERATE_HTML = NO" >> $(DOXYFILE)
+	@echo "LATEX_OUTPUT = $(DOC_OUT_DIR)/latex" >> $(DOXYFILE)
+	
+	@mkdir -p $(DOC_OUT_DIR)
+	@doxygen $(DOXYFILE)
+	
+	@cd $(DOC_OUT_DIR)/latex && latex refman.tex
+	@cd $(DOC_OUT_DIR)/latex && latex refman.tex
+	
+	@echo "✅ DVI документация создана: $(DOC_OUT_DIR)/latex/refman.dvi"
+	@echo "📖 Для просмотра используйте: xdvi $(DOC_OUT_DIR)/latex/refman.dvi"
+	@echo "📄 Для конвертации в PDF: cd $(DOC_OUT_DIR)/latex && dvipdf refman.dvi refman.pdf"
+	
+	# Очистка временного Doxyfile
+	@rm -f $(DOXYFILE)
 
 # Дистрибутив
 dist: clean
@@ -117,17 +139,29 @@ dist: clean
 	@cd $(DIST_DIR) && tar -czvf $(PROJECT_NAME).tar.gz . >/dev/null 2>&1
 	@echo "✅ Дистрибутив создан: $(DIST_DIR)/$(PROJECT_NAME).tar.gz"
 
-# Тесты (заглушка)
-test:
-	@echo "🧪 Тесты временно недоступны"
-	@echo "TODO: Добавить тесты"
-	# TODO: Добавить тесты
+# Тесты
+test: $(TEST_EXEC)
+	@echo "🚀 Запуск тестов..."
+	@./$(TEST_EXEC)
 
-# Отчет о покрытии кода (заглушка)
+# Сборка исполняемого файла тестов
+$(TEST_EXEC): $(TEST_OBJS) $(GAME_OBJS) $(GUI_OBJS) | $(OUTPUT_DIR)
+	@echo "🧪 Компоновка тестов..."
+	@$(CC) $(CFLAGS) $(TEST_OBJS) $(GAME_OBJS) $(GUI_OBJS) -o $@ $(LDFLAGS)
+	@echo "✅ Тесты собраны: $(TEST_EXEC)"
+
+# Правило компиляции тестовых файлов
+$(TEST_DIR)/%.o: $(TEST_DIR)/%.c
+	@echo "🔧 Компиляция теста $<..."
+	@$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
+
+# Отчет о покрытии кода
 gcov_report:
-	@echo "📊 Отчет о покрытии кода временно недоступен"
-	@echo "TODO: Добавить тесты для генерации gcov отчета"
-	# TODO: Добавить тесты и gcov отчет
+	@echo "📊 Отчет по покрытию..."
+	@$(CC) $(CFLAGS) -fprofile-arcs -ftest-coverage -I$(INC_DIR) $(TEST_SOURCES) $(GAME_SRCS) $(GUI_SRCS) -o $(TEST_EXEC) $(LDFLAGS) --coverage
+	@./$(TEST_EXEC) >/dev/null 2>&1 || true
+	@echo "📈 Результат:"
+	@gcov -b $(GAME_SRCS) $(GUI_SRCS) 2>/dev/null | grep -A1 "^File"
 
 # Проверка стиля кода
 clang:
@@ -167,9 +201,10 @@ help:
 	@echo "  run           - Сборка и запуск программы"
 	@echo "  uninstall     - Удаление программы"
 	@echo "  clean         - Очистка временных файлов"
+	@echo "  dvi           - Сборка документации по проекту"
 	@echo "  dist          - Создание дистрибутива"
-	@echo "  test          - Запуск тестов (заглушка)"
-	@echo "  gcov_report   - Отчет о покрытии кода (заглушка)"
+	@echo "  test          - Запуск тестов"
+	@echo "  gcov_report   - Отчет о покрытии кода"
 	@echo "  clang         - Стилевая проверка по Google-style"
 	@echo "  cpp           - Статический анализ кода cppcheck"
 	@echo "  valgrind      - Проверка на утечки памяти"
