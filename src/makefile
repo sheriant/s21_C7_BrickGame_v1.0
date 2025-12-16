@@ -40,20 +40,18 @@ LIBRARY = $(LIB_DIR)/$(LIBRARY_NAME)
 .PHONY: all install uninstall clean dvi dist test gcov_report clang cpp valgrind help
 
 # Основная цель: сборка библиотеки, установка и запуск
-all: library install run
+all: build install run
 
 # Сборка исполняемого файла
 build: $(EXECUTABLE)
 
-$(EXECUTABLE): $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) | $(OUTPUT_DIR)
-	@echo "🔨 Компоновка исполняемого файла..."
-	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+$(EXECUTABLE): $(MAIN_OBJ) $(LIBRARY) | $(OUTPUT_DIR)
+	@echo "🔨 Компоновка исполняемого файла с библиотекой..."
+	@$(CC) $(CFLAGS) $(MAIN_OBJ) -L$(LIB_DIR) -lbrickgame -o $@ $(LDFLAGS)
 	@echo "✅ Исполняемый файл создан: $(EXECUTABLE)"
 
-# Сборка статической библиотеки с очисткой объектных файлов
+# Сборка статической библиотеки
 library: $(LIBRARY)
-	@echo "🗑️  Очистка временных объектных файлов..."
-	@rm -f $(GAME_OBJS) $(GUI_OBJS) 2>/dev/null || true
 
 $(LIBRARY): $(GAME_OBJS) $(GUI_OBJS) | $(LIB_DIR)
 	@echo "📚 Сборка статической библиотеки..."

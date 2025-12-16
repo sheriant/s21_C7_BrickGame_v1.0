@@ -146,6 +146,17 @@ void initializeState() {
   state->block = block;
 
   srand(currentTimeMillis());
+  
+  FILE *file = fopen("max_score.txt", "r");
+  if (file == NULL) {
+    file = fopen("max_score.txt", "w");
+    if (file) {
+      fprintf(file, "0");
+      fclose(file);
+    }
+  } else {
+    fclose(file);
+  }
 }
 
 unsigned long long currentTimeMillis() {
