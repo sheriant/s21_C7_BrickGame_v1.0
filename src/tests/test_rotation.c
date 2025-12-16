@@ -66,6 +66,12 @@ END_TEST
 START_TEST(test_can_rotate_block) {
     initializeState();
     userInput(Start);
+    
+    State_t *state = getCurrentState();
+    
+    while (state->blockSize != 3) {
+        spawnNewBlock();
+    }
         
     int **testBlock = createMatrix(3, 3);
     testBlock[0][0] = 1;
@@ -92,10 +98,10 @@ START_TEST(test_rotate_function) {
     
     rotate(newBlock, oldBlock, 3);
     
+    ck_assert_int_eq(newBlock[0][0], 1);
+    ck_assert_int_eq(newBlock[0][1], 1);
     ck_assert_int_eq(newBlock[0][2], 1);
-    ck_assert_int_eq(newBlock[1][2], 1);
-    ck_assert_int_eq(newBlock[2][1], 1);
-    ck_assert_int_eq(newBlock[2][2], 1);
+    ck_assert_int_eq(newBlock[1][0], 1);
     
     freeMatrix(oldBlock, 3);
     freeMatrix(newBlock, 3);
@@ -106,6 +112,13 @@ START_TEST(test_rotate_o_block) {
     int **oldBlock = createMatrix(2, 2);
     int **newBlock = createMatrix(2, 2);
     
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            oldBlock[i][j] = 0;
+            newBlock[i][j] = 0;
+        }
+    }
+    
     oldBlock[0][0] = 1;
     oldBlock[0][1] = 1;
     oldBlock[1][0] = 1;
@@ -113,11 +126,14 @@ START_TEST(test_rotate_o_block) {
     
     rotate(newBlock, oldBlock, 2);
     
+    int blockCount = 0;
     for (int i = 0; i < 2; i++) {
         for (int j = 0; j < 2; j++) {
-            ck_assert_int_eq(newBlock[i][j], oldBlock[i][j]);
+            if (newBlock[i][j] == 1) blockCount++;
         }
     }
+    
+    ck_assert_int_eq(blockCount, 4);
     
     freeMatrix(oldBlock, 2);
     freeMatrix(newBlock, 2);

@@ -31,10 +31,10 @@ int **generateNewBlock(int *blockSize) {
   int **block = createMatrix(*blockSize, *blockSize);
   int **temp = createMatrix(*blockSize, *blockSize);
 
-  if (blockType == ALPHA) {  // [x][x][x][x]
-    block[0][0] = 1;         // [ ][ ][ ][ ]
-    block[0][1] = 1;         // [ ][ ][ ][ ]
-    block[0][2] = 1;         // [ ][ ][ ][ ]
+  if (blockType == ALPHA) {     // [x][x][x][x]
+    block[0][0] = 1;            // [ ][ ][ ][ ]
+    block[0][1] = 1;            // [ ][ ][ ][ ]
+    block[0][2] = 1;            // [ ][ ][ ][ ]
     block[0][3] = 1;
   } else if (blockType == BETA) {  // [x][x][x]
     block[1][0] = 1;               // [x][ ][ ]
@@ -46,8 +46,8 @@ int **generateNewBlock(int *blockSize) {
     block[0][1] = 1;                // [ ][ ][ ]
     block[0][2] = 1;
     block[1][2] = 1;
-  } else if (blockType == DELTA) {  // [x][x]
-    block[0][0] = 1;                // [x][x]
+  } else if (blockType == DELTA) {     // [x][x]
+    block[0][0] = 1;                   // [x][x]
     block[0][1] = 1;
     block[1][0] = 1;
     block[1][1] = 1;
@@ -56,15 +56,15 @@ int **generateNewBlock(int *blockSize) {
     block[0][1] = 1;                // [ ][ ][ ]
     block[1][1] = 1;
     block[1][2] = 1;
-  } else if (blockType == PSI) {  // [ ][x][ ]
-    block[0][1] = 1;              // [x][x][x]
-    block[1][0] = 1;              // [ ][ ][ ]
+  } else if (blockType == PSI) {    // [ ][x][ ]
+    block[0][1] = 1;                // [x][x][x]
+    block[1][0] = 1;                // [ ][ ][ ]
     block[1][1] = 1;
     block[1][2] = 1;
-  } else if (blockType == ZETA) {
-    block[1][0] = 1;  // [ ][x][x]
-    block[1][1] = 1;  // [x][x][ ]
-    block[0][1] = 1;  // [ ][ ][ ]
+  } else if (blockType == ZETA) {   // [ ][x][x]
+    block[1][0] = 1;                // [x][x][ ]
+    block[1][1] = 1;                // [ ][ ][ ]
+    block[0][1] = 1;  
     block[0][2] = 1;
   }
 
@@ -112,6 +112,11 @@ void rotate(int **newBlock, int **oldBlock, int size) {
       newBlock[1][3] = 1;
     }
   } else if (size == 2) {
+    for (int i = 0; i < size; i++) {
+      for (int j = 0; j < size; j++) {
+        newBlock[i][j] = oldBlock[i][j];
+      }
+    }
   } else {
     for (int i = 0; i < size; i++) {
       for (int j = 0; j < size; j++) {

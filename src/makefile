@@ -99,7 +99,13 @@ uninstall:
 clean: uninstall
 	@echo "🧹 Очистка временных файлов..."
 	@rm -f $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) 2>/dev/null || true
-	@rm -f *.o *.a *.gcno *.gcda *.gcov 2>/dev/null || true
+	@find . -type f \( \
+		-name "*.o" \
+		-o -name "*.a" \
+		-o -name "*.gcno" \
+		-o -name "*.gcda" \
+		-o -name "*.gcov" \
+	\) -delete 2>/dev/null || true
 	@rm -rf $(OUTPUT_DIR) $(DIST_DIR) $(LIB_DIR) html/ report/ 2>/dev/null || true
 	@echo "✅ Все временные файлы удалены"
 
