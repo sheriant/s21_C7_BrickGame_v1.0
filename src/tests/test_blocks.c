@@ -49,11 +49,23 @@ END_TEST
 START_TEST(test_block_is_attached) {
 	initializeState();
 	userInput(Start);
+	
 	State_t *state = getCurrentState();
 	
 	int attached = blockIsAttached();
 	ck_assert_int_eq(attached, 0);
-	state->coordX = FIELD_H - 1;
+	
+	int lowestCellInBlock = 0;
+	for (int i = 0; i < state->blockSize; i++) {
+		for (int j = 0; j < state->blockSize; j++) {
+			if (state->block[i][j] == 1 && i > lowestCellInBlock) {
+				lowestCellInBlock = i;
+			}
+		}
+	}
+
+	state->coordX = FIELD_H - 1 + lowestCellInBlock;
+	
 	attached = blockIsAttached();
 	ck_assert_int_eq(attached, 1);
 	

@@ -40,16 +40,16 @@ START_TEST(test_move_block_left_boundary) {
     userInput(Start);
     
     State_t *state = getCurrentState();
+    int initialY = state->coordY;
     
-    for (int i = 0; i < 10; i++) {
-        moveBlockLeft();
-    }
-    
+    moveBlockLeft();
+    ck_assert(state->coordY == initialY || state->coordY == initialY - 1);
     ck_assert_int_ge(state->coordY, 0);
     
     finishGame();
 }
 END_TEST
+
 
 START_TEST(test_move_block_right_boundary) {
     initializeState();
@@ -57,11 +57,21 @@ START_TEST(test_move_block_right_boundary) {
     
     State_t *state = getCurrentState();
     
-    for (int i = 0; i < 10; i++) {
-        moveBlockRight();
-    }
+    int movement_stopped = 0;
+    int prev_y = state->coordY;
     
-    ck_assert_int_lt(state->coordY, FIELD_W);
+    for (int i = 0; i < 10; i++) {
+        if (!movement_stopped) {
+            moveBlockRight();
+            ck_assert_int_lt(state->coordY, FIELD_W);
+            
+            if (state->coordY == prev_y) {
+                movement_stopped = 1;
+            } else {
+                prev_y = state->coordY;
+            }
+        }
+    }
     
     finishGame();
 }

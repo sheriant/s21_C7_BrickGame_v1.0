@@ -12,9 +12,11 @@ LIB_DIR = lib
 
 # Директория тестов
 TEST_DIR = tests
+TEST_LOG_DIR = report/tests
 TEST_SOURCES = $(wildcard $(TEST_DIR)/*.c)
 TEST_OBJS = $(TEST_SOURCES:.c=.o)
 TEST_EXEC = $(OUTPUT_DIR)/tetris_tests
+GCOV_REPORT_DIR = report/coverage
 
 # Исходные файлы (относительно src/)
 GAME_SRCS = $(GAME_DIR)/code.c
@@ -69,15 +71,12 @@ $(LIB_DIR):
 
 # Правила компиляции для файлов в поддиректориях
 $(GAME_DIR)/%.o: $(GAME_DIR)/%.c
-	@echo "🔧 Компиляция $<..."
 	@$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 $(GUI_DIR)/%.o: $(GUI_DIR)/%.c
-	@echo "🔧 Компиляция $<..."
 	@$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 %.o: %.c
-	@echo "🔧 Компиляция $<..."
 	@$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 # Установка
@@ -106,7 +105,7 @@ clean: uninstall
 		-o -name "*.gcda" \
 		-o -name "*.gcov" \
 	\) -delete 2>/dev/null || true
-	@rm -rf $(OUTPUT_DIR) $(DIST_DIR) $(LIB_DIR) html/ report/ 2>/dev/null || true
+	@rm -rf $(OUTPUT_DIR) $(DIST_DIR) $(LIB_DIR) html/ report/ gcov_report/ 2>/dev/null || true
 	@echo "✅ Все временные файлы удалены"
 
 # Документация (DVI)
@@ -147,8 +146,32 @@ dist: clean
 
 # Тесты
 test: $(TEST_EXEC)
-	@echo "🚀 Запуск тестов..."
-	@./$(TEST_EXEC)
+	@mkdir -p $(TEST_LOG_DIR)
+	@echo "🧪 Тестирование (10 итераций)..."
+	@FAILED=""; \
+	for i in $$(seq 1 10); do \
+		rm -f max_score.txt 2>/dev/null; \
+		./$(TEST_EXEC) >$(TEST_LOG_DIR)/run_$$i.log 2>&1; \
+		if [ $$? -eq 0 ]; then \
+			echo "Итерация $$i: ✅"; \
+		else \
+			echo "Итерация $$i: ❌"; \
+			FAILED="$$FAILED $$i"; \
+		fi; \
+	done; \
+	echo ""; \
+	if [ -n "$$FAILED" ]; then \
+		for i in $$FAILED; do \
+			echo "--- Итерация $$i ---"; \
+			grep -B1 "FAIL\|ERROR" $(TEST_LOG_DIR)/run_$$i.log | grep "tests/" || \
+			grep "tests/" $(TEST_LOG_DIR)/run_$$i.log | tail -1; \
+		done; \
+		echo "\n📋 Полные логи в директории: $(TEST_LOG_DIR)/"; \
+		exit 1; \
+	else \
+		echo "✅ Все тесты успешны!"; \
+		rm -rf $(TEST_LOG_DIR) 2>/dev/null || true; \
+	fi
 
 # Сборка исполняемого файла тестов
 $(TEST_EXEC): $(TEST_OBJS) $(GAME_OBJS) $(GUI_OBJS) | $(OUTPUT_DIR)
@@ -158,16 +181,35 @@ $(TEST_EXEC): $(TEST_OBJS) $(GAME_OBJS) $(GUI_OBJS) | $(OUTPUT_DIR)
 
 # Правило компиляции тестовых файлов
 $(TEST_DIR)/%.o: $(TEST_DIR)/%.c
-	@echo "🔧 Компиляция теста $<..."
 	@$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 # Отчет о покрытии кода
 gcov_report:
-	@echo "📊 Отчет по покрытию..."
-	@$(CC) $(CFLAGS) -fprofile-arcs -ftest-coverage -I$(INC_DIR) $(TEST_SOURCES) $(GAME_SRCS) $(GUI_SRCS) -o $(TEST_EXEC) $(LDFLAGS) --coverage
-	@./$(TEST_EXEC) >/dev/null 2>&1 || true
-	@echo "📈 Результат:"
-	@gcov -b $(GAME_SRCS) $(GUI_SRCS) 2>/dev/null | grep -A1 "^File"
+	@echo "📊 Сборка отчета о покрытии кода..."
+	@mkdir -p $(GCOV_REPORT_DIR)
+	
+	@$(CC) $(CFLAGS) -fprofile-arcs -ftest-coverage \
+		-I$(INC_DIR) $(TEST_SOURCES) $(GAME_SRCS) $(GUI_SRCS) \
+		-o $(GCOV_REPORT_DIR)/test_gcov $(LDFLAGS) -lgcov 2>/dev/null
+	
+	@echo
+	@cd $(GCOV_REPORT_DIR) && ./test_gcov 2>&1 | grep -E "100%:|FAIL|ERROR" || true
+	@echo
+	
+	@lcov --capture --directory . --output-file $(GCOV_REPORT_DIR)/coverage.info 1>/dev/null 2>&1
+	
+	# Исключаем тестовые файлы и gui из отчета
+	@lcov --remove $(GCOV_REPORT_DIR)/coverage.info \
+		"$(TEST_DIR)/*" \
+		"$(GUI_DIR)/*" \
+		-o $(GCOV_REPORT_DIR)/coverage_filtered.info 1>/dev/null 2>&1
+	
+	@genhtml $(GCOV_REPORT_DIR)/coverage_filtered.info --output-directory $(GCOV_REPORT_DIR)/html 1>/dev/null 2>&1
+	
+	@echo "Overall coverage rate:"
+	@lcov --summary $(GCOV_REPORT_DIR)/coverage_filtered.info 2>/dev/null | tail -4
+	@echo
+	@echo "✅ HTML отчет создан: $(GCOV_REPORT_DIR)/html/index.html"
 
 # Проверка стиля кода
 clang:
@@ -183,8 +225,8 @@ cpp:
 		$(MAIN_SRC) \
 		$(GAME_SRCS) \
 		$(GUI_SRCS) \
-		2>&1 | tee cppcheck_report.txt >/dev/null
-	@echo "📄 Отчет сохранен в cppcheck_report.txt"
+		2>&1 | tee report/cppcheck_report.txt >/dev/null
+	@echo "📄 Отчет сохранен в report/cppcheck_report.txt"
 
 # Проверка на утечки памяти
 valgrind: build
