@@ -31,10 +31,10 @@ int **generateNewBlock(int *blockSize) {
   int **block = createMatrix(*blockSize, *blockSize);
   int **temp = createMatrix(*blockSize, *blockSize);
 
-  if (blockType == ALPHA) {     // [x][x][x][x]
-    block[0][0] = 1;            // [ ][ ][ ][ ]
-    block[0][1] = 1;            // [ ][ ][ ][ ]
-    block[0][2] = 1;            // [ ][ ][ ][ ]
+  if (blockType == ALPHA) {  // [x][x][x][x]
+    block[0][0] = 1;         // [ ][ ][ ][ ]
+    block[0][1] = 1;         // [ ][ ][ ][ ]
+    block[0][2] = 1;         // [ ][ ][ ][ ]
     block[0][3] = 1;
   } else if (blockType == BETA) {  // [x][x][x]
     block[1][0] = 1;               // [x][ ][ ]
@@ -46,8 +46,8 @@ int **generateNewBlock(int *blockSize) {
     block[0][1] = 1;                // [ ][ ][ ]
     block[0][2] = 1;
     block[1][2] = 1;
-  } else if (blockType == DELTA) {     // [x][x]
-    block[0][0] = 1;                   // [x][x]
+  } else if (blockType == DELTA) {  // [x][x]
+    block[0][0] = 1;                // [x][x]
     block[0][1] = 1;
     block[1][0] = 1;
     block[1][1] = 1;
@@ -56,15 +56,15 @@ int **generateNewBlock(int *blockSize) {
     block[0][1] = 1;                // [ ][ ][ ]
     block[1][1] = 1;
     block[1][2] = 1;
-  } else if (blockType == PSI) {    // [ ][x][ ]
-    block[0][1] = 1;                // [x][x][x]
-    block[1][0] = 1;                // [ ][ ][ ]
+  } else if (blockType == PSI) {  // [ ][x][ ]
+    block[0][1] = 1;              // [x][x][x]
+    block[1][0] = 1;              // [ ][ ][ ]
     block[1][1] = 1;
     block[1][2] = 1;
-  } else if (blockType == ZETA) {   // [ ][x][x]
-    block[1][0] = 1;                // [x][x][ ]
-    block[1][1] = 1;                // [ ][ ][ ]
-    block[0][1] = 1;  
+  } else if (blockType == ZETA) {  // [ ][x][x]
+    block[1][0] = 1;               // [x][x][ ]
+    block[1][1] = 1;               // [ ][ ][ ]
+    block[0][1] = 1;
     block[0][2] = 1;
   }
 
@@ -150,7 +150,7 @@ void initializeState() {
   state->nextBlock = nextBlock;
   state->blockSize = nextBlockSize;
   state->block = block;
-  
+
   FILE *file = fopen("max_score.txt", "r");
   if (file == NULL) {
     file = fopen("max_score.txt", "w");
@@ -387,7 +387,7 @@ void saveMaxScore() {
       fprintf(file, "%d", state->score);
       fclose(file);
     } else {
-    printf("File max_score.txt doesn't exist!");
+      printf("File max_score.txt doesn't exist!");
     }
   }
 }
