@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c11 -pedantic
-LDFLAGS = 
+LDFLAGS = -lcheck -pthread -lrt -lm -lsubunit 
 
 # Определение OS и настройка ncurses
 UNAME_S := $(shell uname -s)
@@ -16,7 +16,7 @@ endif
 GUI_DIR = gui/cli
 GAME_DIR = brick_game/tetris
 INC_DIR = .
-BUILD_DIR = build
+OUTPUT_DIR = output
 DIST_DIR = dist
 LIB_DIR = lib
 
@@ -33,7 +33,7 @@ MAIN_OBJ = game.o
 # Имена
 PROJECT_NAME = tetris
 LIBRARY_NAME = libbrickgame.a
-EXECUTABLE = $(BUILD_DIR)/$(PROJECT_NAME)
+EXECUTABLE = $(OUTPUT_DIR)/$(PROJECT_NAME)
 LIBRARY = $(LIB_DIR)/$(LIBRARY_NAME)
 
 # Все цели
@@ -45,7 +45,7 @@ all: library install run
 # Сборка исполняемого файла
 build: $(EXECUTABLE)
 
-$(EXECUTABLE): $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) | $(BUILD_DIR)
+$(EXECUTABLE): $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) | $(OUTPUT_DIR)
 	@echo "🔨 Компоновка исполняемого файла..."
 	@$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 	@echo "✅ Исполняемый файл создан: $(EXECUTABLE)"
@@ -62,8 +62,8 @@ $(LIBRARY): $(GAME_OBJS) $(GUI_OBJS) | $(LIB_DIR)
 	@echo "✅ Библиотека создана: $(LIBRARY)"
 
 # Создание директорий
-$(BUILD_DIR):
-	@mkdir -p $(BUILD_DIR)
+$(OUTPUT_DIR):
+	@mkdir -p $(OUTPUT_DIR)
 
 $(LIB_DIR):
 	@mkdir -p $(LIB_DIR)
@@ -83,7 +83,7 @@ $(GUI_DIR)/%.o: $(GUI_DIR)/%.c
 
 # Установка
 install: build
-	@echo "📦 Программа установлена в $(BUILD_DIR)"
+	@echo "📦 Программа установлена в $(OUTPUT_DIR)"
 
 # Запуск
 run: install
@@ -93,7 +93,7 @@ run: install
 # Удаление установленной программы
 uninstall:
 	@echo "🗑️  Удаление программы..."
-	@rm -rf $(BUILD_DIR) $(LIB_DIR) 2>/dev/null || true
+	@rm -rf $(OUTPUT_DIR) $(LIB_DIR) 2>/dev/null || true
 	@echo "✅ Программа удалена"
 
 # Очистка (полная)
@@ -101,7 +101,7 @@ clean:
 	@echo "🧹 Очистка временных файлов..."
 	@rm -f $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) 2>/dev/null || true
 	@rm -f *.o *.a *.gcno *.gcda *.gcov 2>/dev/null || true
-	@rm -rf $(BUILD_DIR) $(DIST_DIR) $(LIB_DIR) html/ report/ 2>/dev/null || true
+	@rm -rf $(OUTPUT_DIR) $(DIST_DIR) $(LIB_DIR) html/ report/ 2>/dev/null || true
 	@echo "✅ Все временные файлы удалены"
 
 # Документация (DVI)

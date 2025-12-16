@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include "../../game.h"
@@ -58,7 +59,7 @@ void initializeState();
 void userInput(UserAction_t action);
 State_t *getCurrentState();
 int canRotateBlock(int **newBlock);
-void rotate(int **newBlock, int **old, int size);
+void rotate(int **newBlock, int **oldBlock, int size);
 void consumeRows();
 void copyMatrix(int **dest, int **src, int H, int W);
 int **generateNewBlock(int *blockSize);
@@ -70,6 +71,6 @@ void updateLevel();
 void startGame();
 unsigned long long currentTimeMillis();
 void pauseGame();
-void freeMatrix(int **matrix, int H);
+void freeMatrix(int **matrix, int size);
 
 #endif  // CODE_H

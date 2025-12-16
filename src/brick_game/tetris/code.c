@@ -10,7 +10,7 @@ int **createMatrix(int H, int W) {
   for (int i = 0; i < H; i++) {
     int *row = (int *)malloc(W * sizeof(int));
     matrix[i] = row;
-    for (int j; j < W; j++) {
+    for (int j = 0; j < W; j++) {
       matrix[i][j] = 0;
     }
   }
@@ -20,8 +20,6 @@ int **createMatrix(int H, int W) {
 int **generateNewBlock(int *blockSize) {
   int blockType = rand() % 7;
   int rotations = rand() % 4;
-  int **block = createMatrix(*blockSize, *blockSize);
-  int **temp = createMatrix(*blockSize, *blockSize);
 
   if (blockType == ALPHA)
     *blockSize = 4;
@@ -29,6 +27,9 @@ int **generateNewBlock(int *blockSize) {
     *blockSize = 2;
   else
     *blockSize = 3;
+
+  int **block = createMatrix(*blockSize, *blockSize);
+  int **temp = createMatrix(*blockSize, *blockSize);
 
   if (blockType == ALPHA) {  // [x][x][x][x]
     block[0][0] = 1;         // [ ][ ][ ][ ]
@@ -135,7 +136,7 @@ void initializeState() {
   state->coordX = -1;
   state->coordY = 4;
 
-  int nextBlockSize;
+  int nextBlockSize = 0;
   int **nextBlock = generateNewBlock(&nextBlockSize);
   int **block = createMatrix(nextBlockSize, nextBlockSize);
   copyMatrix(block, nextBlock, nextBlockSize, nextBlockSize);
@@ -358,12 +359,21 @@ void saveMaxScore() {
   int highScore = 0;
 
   file = fopen("max_score.txt", "r");
-  fscanf(file, "%d", &highScore);
+  if (file != NULL) {
+    fscanf(file, "%d", &highScore);
+    fclose(file);
+  } else {
+    printf("File max_score.txt doesn't exist!");
+  }
 
   if (state->score > highScore) {
     file = fopen("max_score.txt", "w");
-    fprintf(file, "%d", state->score);
-    fclose(file);
+    if (file != NULL) {
+      fprintf(file, "%d", state->score);
+      fclose(file);
+    } else {
+    printf("File max_score.txt doesn't exist!");
+    }
   }
 }
 
@@ -382,7 +392,7 @@ void consumeRows() {
     int countBlocks = 0;
 
     for (int j = 0; j < FIELD_W; j++) {
-      countBlocks = state->field[i][j];
+      countBlocks += state->field[i][j];
     }
 
     if (countBlocks == FIELD_W) {
@@ -447,6 +457,8 @@ void finishGame() {
 GameInfo_t updateCurrentState() {
   State_t *state = getCurrentState();
   GameInfo_t info;
+  memset(&info, 0, sizeof(GameInfo_t));
+
   int **field = createMatrix(FIELD_H, FIELD_W);
 
   copyMatrix(field, state->field, FIELD_H, FIELD_W);
@@ -454,22 +466,49 @@ GameInfo_t updateCurrentState() {
     for (int j = 0; j < state->blockSize; j++) {
       int newX = state->coordX - i;
       int newY = state->coordY + j;
-      if (state->block[i][j] && newX >= 0 && newY >= FIELD_W)
+      if (state->block[i][j] && newX >= 0 && newX < FIELD_H && newY >= 0 &&
+          newY < FIELD_W) {
         field[newX][newY] = 1;
+      }
     }
   }
 
-  info.field = state->field;
+  info.field = field;
   info.score = state->score;
   info.level = state->level;
   info.speed = state->speed;
   int **next = createMatrix(4, 4);
-  copyMatrix(next, state->nextBlock, state->nextBlockSize,
-             state->nextBlockSize);
+  if (next) {
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        next[i][j] = 0;
+      }
+    }
+
+    if (state->nextBlock && state->nextBlockSize > 0) {
+      int copySize = state->nextBlockSize;
+      if (copySize > 4) copySize = 4;
+
+      for (int i = 0; i < copySize; i++) {
+        for (int j = 0; j < copySize; j++) {
+          next[i][j] = state->nextBlock[i][j];
+        }
+      }
+    }
+
+    info.next = next;
+  } else {
+    info.next = NULL;
+  }
+
   int highScore = 0;
   FILE *file = fopen("max_score.txt", "r");
-  fscanf(file, "%d", &highScore);
-  fclose(file);
+  if (file != NULL) {
+    fscanf(file, "%d", &highScore);
+    fclose(file);
+  } else {
+    printf("File max_score.txt doesn't exist!");
+  }
   info.highScore = highScore;
   info.pause = 0;
   if (state->status == Initial) info.pause = GameStart;
