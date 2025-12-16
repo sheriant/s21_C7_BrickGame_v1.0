@@ -100,7 +100,7 @@ void rotate(int **newBlock, int **oldBlock, int size) {
   }
 
   if (size == 4) {
-    if (oldBlock[0][0] == 1) {
+    if (oldBlock[0][0] == 1 || oldBlock[1][0] == 1) {
       newBlock[0][1] = 1;
       newBlock[1][1] = 1;
       newBlock[2][1] = 1;
@@ -124,6 +124,7 @@ void rotate(int **newBlock, int **oldBlock, int size) {
 void initializeState() {
   State_t *state = getCurrentState();
   state->status = Initial;
+  srand(currentTimeMillis());
 
   int **field = createMatrix(FIELD_H, FIELD_W);
 
@@ -144,8 +145,6 @@ void initializeState() {
   state->nextBlock = nextBlock;
   state->blockSize = nextBlockSize;
   state->block = block;
-
-  srand(currentTimeMillis());
   
   FILE *file = fopen("max_score.txt", "r");
   if (file == NULL) {

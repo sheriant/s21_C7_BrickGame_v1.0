@@ -37,7 +37,7 @@ EXECUTABLE = $(OUTPUT_DIR)/$(PROJECT_NAME)
 LIBRARY = $(LIB_DIR)/$(LIBRARY_NAME)
 
 # Все цели
-.PHONY: all install uninstall clean dvi dist test gcov_report clang cpp valgrind help
+.PHONY: all build library install run uninstall clean dvi dist test gcov_report clang cpp valgrind help
 
 # Основная цель: сборка библиотеки, установка и запуск
 all: build install run
@@ -91,11 +91,12 @@ run: install
 # Удаление установленной программы
 uninstall:
 	@echo "🗑️  Удаление программы..."
+	@rm -rf *.txt
 	@rm -rf $(OUTPUT_DIR) $(LIB_DIR) 2>/dev/null || true
 	@echo "✅ Программа удалена"
 
 # Очистка (полная)
-clean:
+clean: uninstall
 	@echo "🧹 Очистка временных файлов..."
 	@rm -f $(GAME_OBJS) $(GUI_OBJS) $(MAIN_OBJ) 2>/dev/null || true
 	@rm -f *.o *.a *.gcno *.gcda *.gcov 2>/dev/null || true
