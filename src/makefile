@@ -105,7 +105,7 @@ clean: uninstall
 		-o -name "*.gcda" \
 		-o -name "*.gcov" \
 	\) -delete 2>/dev/null || true
-	@rm -rf $(OUTPUT_DIR) $(DIST_DIR) $(LIB_DIR) html/ report/ gcov_report/ 2>/dev/null || true
+	@rm -rf $(OUTPUT_DIR) $(DIST_DIR) $(LIB_DIR) html/ docs/ report/ 2>/dev/null || true
 	@echo "✅ Все временные файлы удалены"
 
 # Документация (DVI)
@@ -138,10 +138,13 @@ dvi:
 # Дистрибутив
 dist: clean
 	@echo "📦 Создание дистрибутива..."
-	@mkdir -p $(DIST_DIR)
-	@cp -r ../src/* $(DIST_DIR)/ 2>/dev/null || true
-	@cp Makefile $(DIST_DIR)/ 2>/dev/null || true
-	@cd $(DIST_DIR) && tar -czvf $(PROJECT_NAME).tar.gz . >/dev/null 2>&1
+	@rm -rf $(DIST_DIR) 2>/dev/null || true
+	@mkdir -p $(DIST_DIR)/temp
+	@cp -r . $(DIST_DIR)/temp/ 2>/dev/null || true
+	@find $(DIST_DIR)/temp -type f \( -name "*.o" -o -name "*.a" -o -name "*.gcno" -o -name "*.gcda" -o -name "*.gcov" \) -delete 2>/dev/null || true
+	@find $(DIST_DIR)/temp -type d \( -name "output" -o -name "dist" -o -name "lib" -o -name "report" \) -exec rm -rf {} + 2>/dev/null || true
+	@cd $(DIST_DIR)/temp && tar -czvf ../$(PROJECT_NAME).tar.gz . >/dev/null 2>&1
+	@rm -rf $(DIST_DIR)/temp 2>/dev/null || true
 	@echo "✅ Дистрибутив создан: $(DIST_DIR)/$(PROJECT_NAME).tar.gz"
 
 # Тесты
@@ -220,6 +223,7 @@ clang:
 # Статический анализ исходного кода
 cpp:
 	@echo "🔄 Запуск cppcheck..."
+	@mkdir -p report
 	@cppcheck --enable=all --suppress=missingIncludeSystem --inconclusive \
 		-I$(INC_DIR) \
 		$(MAIN_SRC) \
@@ -231,13 +235,16 @@ cpp:
 # Проверка на утечки памяти
 valgrind: build
 	@echo "🧪 Запуск valgrind..."
-	@valgrind --leak-check=full \
+	@mkdir -p report
+	@timeout 3s valgrind --leak-check=full \
 		--show-leak-kinds=all \
 		--track-origins=yes \
 		--verbose \
-		--log-file=valgrind_report.txt \
-		$(EXECUTABLE) >/dev/null 2>&1 || true
-	@echo "📄 Отчет сохранен в valgrind_report.txt"
+		--log-file=report/valgrind_report.txt \
+		$(EXECUTABLE) 2>/dev/null || true
+	@echo "📄 Отчет сохранен в report/valgrind_report.txt"
+	@echo "🔍 Краткий анализ утечек:"
+	@grep -A5 "LEAK SUMMARY" report/valgrind_report.txt || echo "Не удалось найти информацию об утечках"
 
 # Помощь
 help:
